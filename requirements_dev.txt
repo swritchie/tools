@@ -1,0 +1,8 @@
+hypothesis
+ipytest
+jupyter-ruff
+jupyterlab
+pandera
+pytest
+ruff
+ty

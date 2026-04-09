@@ -55,16 +55,24 @@ def describe_datasets(
     return description
 
 
-def get_correlations(X: pd.DataFrame, y: pd.Series | None = None, method: str = "spearman") -> pd.Series:
+def get_correlations(
+    X: pd.DataFrame, y: pd.Series | None = None, is_memory_low: bool = False, method: str = "spearman"
+) -> pd.Series:
+    def process(data: pd.Series, method: str = method) -> pd.Series:
+        return data.rename(index=method).dropna().sort_values()
+
     X_numeric: pd.DataFrame = X.select_dtypes(include="number")
     if y is None:
-        column_pairs: list[tuple[str, str]] = sorted(itertools.combinations(iterable=X_numeric.columns, r=2))
-        correlations: dict[tuple[str, str], float] = {}
-        for column_pair in tqdm.tqdm(iterable=column_pairs):  # type: tuple[str, str]
-            correlation: float = X_numeric[list(column_pair)].corr(method=method).iloc[0, 1]
-            correlations[column_pair] = 0e0 if pd.isna(obj=correlation) else correlation  # Handle constant columns
-        return pd.Series(data=correlations, name=method).sort_values()
-    return X_numeric.corrwith(other=y, method=method).fillna(value=0).rename(index=method).sort_values()
+        if is_memory_low:
+            column_pairs: list[tuple[str, str]] = list(itertools.combinations(iterable=X_numeric.columns, r=2))
+            correlations: dict[tuple[str, str], float] = {}
+            for column_pair in tqdm.tqdm(iterable=column_pairs):  # type: tuple[str, str]
+                correlations[column_pair] = X_numeric[list(column_pair)].corr(method=method).iloc[0, 1]
+            return pd.Series(data=correlations).pipe(func=process)
+        else:
+            fn: typing.Callable = tz.compose_left(tz.partial(np.ones_like, dtype=bool), tz.partial(np.triu, k=1))
+            return X_numeric.corr(method=method).where(cond=fn).stack().pipe(func=process)
+    return X_numeric.corrwith(other=y, method=method).pipe(func=process)
 
 
 def get_differences(data: pd.DataFrame, first_column: str, second_column: str) -> pd.DataFrame:

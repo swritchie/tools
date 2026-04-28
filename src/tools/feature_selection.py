@@ -83,7 +83,7 @@ def get_scores(rfecv: snfs.RFECV) -> pd.DataFrame:
         "best_mean": lambda x: x["mean_test_score"].where(cond=x["is_best"]).bfill().ffill(),
         "best_sem": lambda x: x["sem_test_score"].where(cond=x["is_best"]).bfill().ffill(),
         "best_lower": lambda x: x["best_mean"].sub(other=x["best_sem"]),
-        "is_wi_1_sem": lambda x: x["mean_test_score"].gt(other=x["best_lower"]),
+        "is_wi_1_sem": lambda x: x["mean_test_score"].ge(other=x["best_lower"]),
         "is_simplest_wi_1_sem": lambda x: x.index.__eq__(x.query(expr="is_wi_1_sem").index.min()),
     }
     return (

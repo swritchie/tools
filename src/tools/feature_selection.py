@@ -10,6 +10,36 @@ from sklearn import base as snbe
 from sklearn import feature_selection as snfs
 
 
+class DuplicatedDropper(snbe.BaseEstimator, snbe.TransformerMixin):
+    def __init__(self, is_memory_low: bool = False) -> None:
+        self.is_memory_low = is_memory_low
+
+    def fit(self, X: pd.DataFrame, y: pd.Series | None = None) -> "DuplicatedDropper":
+        self.duplicated_columns: pd.Index = self._get_duplicated_columns(data=X)
+        self.remaining_columns: pd.Index = self._get_remaining_columns(data=X)
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        return X.drop(columns=self.duplicated_columns)
+
+    def get_feature_names_out(self) -> list[str]:
+        return self.remaining_columns.tolist()
+
+    def _get_duplicated_columns(self, data: pd.DataFrame) -> pd.Index:
+        if self.is_memory_low:
+            column_pairs: list[tuple[str, str]] = list(itertools.combinations(iterable=data.columns, r=2))
+            duplicated_columns: list[str] = []
+            for first_column, second_column in tqdm.tqdm(iterable=column_pairs):  # type: tuple[str, str]
+                if data[first_column].equals(other=data[second_column]):
+                    duplicated_columns.append(second_column)
+            return pd.Index(data=duplicated_columns)
+        else:
+            return data.T.duplicated(keep="first").to_frame(name="flag").query(expr="flag").index
+
+    def _get_remaining_columns(self, data: pd.DataFrame) -> pd.Index:
+        return data.columns.difference(other=self.duplicated_columns)
+
+
 class QuasiConstantDropper(snbe.BaseEstimator, snbe.TransformerMixin):
     def __init__(self, drop_na: bool = False, threshold: float = 1e0) -> None:
         self.drop_na, self.threshold = drop_na, threshold
@@ -41,36 +71,6 @@ class QuasiConstantDropper(snbe.BaseEstimator, snbe.TransformerMixin):
 
     def _get_remaining_columns(self, data: pd.DataFrame) -> pd.Index:
         return data.columns.difference(other=self.constant_columns)
-
-
-class DuplicatedDropper(snbe.BaseEstimator, snbe.TransformerMixin):
-    def __init__(self, is_memory_low: bool = False) -> None:
-        self.is_memory_low = is_memory_low
-
-    def fit(self, X: pd.DataFrame, y: pd.Series | None = None) -> "DuplicatedDropper":
-        self.duplicated_columns: pd.Index = self._get_duplicated_columns(data=X)
-        self.remaining_columns: pd.Index = self._get_remaining_columns(data=X)
-        return self
-
-    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        return X.drop(columns=self.duplicated_columns)
-
-    def get_feature_names_out(self) -> list[str]:
-        return self.remaining_columns.tolist()
-
-    def _get_duplicated_columns(self, data: pd.DataFrame) -> pd.Index:
-        if self.is_memory_low:
-            column_pairs: list[tuple[str, str]] = list(itertools.combinations(iterable=data.columns, r=2))
-            duplicated_columns: list[str] = []
-            for first_column, second_column in tqdm.tqdm(iterable=column_pairs):  # type: tuple[str, str]
-                if data[first_column].equals(other=data[second_column]):
-                    duplicated_columns.append(second_column)
-            return pd.Index(data=duplicated_columns)
-        else:
-            return data.T.duplicated(keep="first").to_frame(name="flag").query(expr="flag").index
-
-    def _get_remaining_columns(self, data: pd.DataFrame) -> pd.Index:
-        return data.columns.difference(other=self.duplicated_columns)
 
 
 def get_scores(rfecv: snfs.RFECV) -> pd.DataFrame:

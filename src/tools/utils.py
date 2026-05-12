@@ -7,6 +7,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import toolz as tz
+from matplotlib import pyplot as plt
 
 
 class DocstringParser:
@@ -137,6 +138,14 @@ def print_shapes(x: typing.Any, include_types: bool = False, **kwargs) -> None:
 def print_type_and_return(x: typing.Any) -> typing.Any:
     print(type(x))
     return x
+
+
+def save_show_and_close(outputs_directory: pathlib.Path | None, filename: str | None, is_in_notebook: bool) -> None:
+    if outputs_directory is not None and filename is not None:
+        plt.savefig(fname=outputs_directory / filename, bbox_inches="tight")
+    if is_in_notebook:
+        plt.show()
+    plt.close()
 
 
 def time_callable(fn: typing.Callable) -> typing.Callable:

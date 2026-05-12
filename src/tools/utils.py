@@ -7,6 +7,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import toolz as tz
+from matplotlib import pyplot as plt
 
 
 class DocstringParser:
@@ -75,6 +76,17 @@ def describe_structure(x: typing.Any, indent: int = 0, max_indent: int = 2) -> N
         print("%s%s" % (prefix, get_type_and_shape(x=x)))
 
 
+def display_data(
+    data: pd.DataFrame | pd.Series, is_in_notebook: bool, name: str | None = None, info_args: dict | None = None
+) -> None:
+    if name is not None:
+        print("=" * int(8e1), name, "-" * int(8e1), sep="\n")
+    data.info(**(info_args or {}))
+    if is_in_notebook:
+        print("-" * int(8e1))
+        display(data)
+
+
 def filter_dir(x: typing.Any, include_underscores: bool = False, include_modules: bool = False) -> pd.DataFrame:
     assign_args: dict[str, typing.Callable] = {
         "has_underscore": lambda y: y["object"].str.startswith(pat="_"),
@@ -137,6 +149,14 @@ def print_shapes(x: typing.Any, include_types: bool = False, **kwargs) -> None:
 def print_type_and_return(x: typing.Any) -> typing.Any:
     print(type(x))
     return x
+
+
+def save_show_and_close(outputs_directory: pathlib.Path | None, filename: str | None, is_in_notebook: bool) -> None:
+    if outputs_directory is not None and filename is not None:
+        plt.savefig(fname=outputs_directory / filename, bbox_inches="tight")
+    if is_in_notebook:
+        plt.show()
+    plt.close()
 
 
 def time_callable(fn: typing.Callable) -> typing.Callable:

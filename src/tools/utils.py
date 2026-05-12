@@ -76,6 +76,17 @@ def describe_structure(x: typing.Any, indent: int = 0, max_indent: int = 2) -> N
         print("%s%s" % (prefix, get_type_and_shape(x=x)))
 
 
+def display_data(
+    data: pd.DataFrame | pd.Series, is_in_notebook: bool, name: str | None = None, info_args: dict | None = None
+) -> None:
+    if name is not None:
+        print("=" * int(8e1), name, "-" * int(8e1), sep="\n")
+    data.info(**(info_args or {}))
+    if is_in_notebook:
+        print("-" * int(8e1))
+        display(data)
+
+
 def filter_dir(x: typing.Any, include_underscores: bool = False, include_modules: bool = False) -> pd.DataFrame:
     assign_args: dict[str, typing.Callable] = {
         "has_underscore": lambda y: y["object"].str.startswith(pat="_"),

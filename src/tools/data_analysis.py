@@ -1,4 +1,5 @@
 import itertools
+import pathlib
 import typing
 
 import numpy as np
@@ -6,6 +7,7 @@ import pandas as pd
 import toolz as tz
 import tqdm
 from matplotlib import pyplot as plt
+from tools import utils as tsus
 
 
 def describe_dataset(data: pd.DataFrame) -> pd.DataFrame:
@@ -83,6 +85,24 @@ def get_differences(data: pd.DataFrame, first_column: str, second_column: str) -
         "pct_diff": lambda x: x["abs_diff"].div(other=x["mean"].where(cond=x["mean"].ne(other=0))),
     }
     return data.assign(**assign_args)
+
+
+def plot_dataset_description(
+    dataset_description: pd.DataFrame,
+    outputs_directory: pathlib.Path | None,
+    is_in_notebook: bool,
+    other_columns: list | None = None,
+) -> None:
+    # Plot dtypes
+    column: str = "dtypes"
+    dataset_description[column].pipe(func=plot_value_counts)
+    shared_args = dict(outputs_directory=outputs_directory, is_in_notebook=is_in_notebook)
+    tsus.save_show_and_close(filename=column, **shared_args)
+    # Plot other columns
+    columns: list = other_columns or ["nunique", "pct_inf", "pct_missing", "pct_negative", "pct_zero", "min", "max"]
+    for column in columns:  # type: str
+        dataset_description[column].pipe(func=pd.to_numeric, errors="coerce").dropna().pipe(func=plot_histogram)
+        tsus.save_show_and_close(filename=column, **shared_args)
 
 
 def plot_histogram(data: pd.Series, bbox: list | tuple = (1.2, 0, 2e-1, 1), **kwargs) -> plt.Axes:

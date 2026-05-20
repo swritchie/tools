@@ -1,6 +1,8 @@
 import contextlib
 import datetime
+import logging
 import pathlib
+import shutil
 import typing
 import warnings
 
@@ -74,6 +76,17 @@ def describe_structure(x: typing.Any, indent: int = 0, max_indent: int = 2) -> N
             describe_structure(x=element, indent=indent + 1, max_indent=max_indent)
     else:
         print("%s%s" % (prefix, get_type_and_shape(x=x)))
+
+
+def configure_logging(path: str | None, params: dict[str, typing.Any]) -> pathlib.Path | None:
+    if path is not None:
+        outputs_directory = pathlib.Path(path)
+        shutil.rmtree(path=outputs_directory, ignore_errors=True)
+        outputs_directory.mkdir()
+        logging.basicConfig(filename=outputs_directory / str(datetime.date.today()), **params["basic_config_args"])
+        return outputs_directory
+    else:
+        logging.basicConfig(**params["basic_config_args"])
 
 
 def display_data(

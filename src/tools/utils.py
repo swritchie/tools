@@ -9,6 +9,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import toolz as tz
+import yaml
 from matplotlib import pyplot as plt
 
 
@@ -162,6 +163,12 @@ def print_shapes(x: typing.Any, include_types: bool = False, **kwargs) -> None:
 def print_type_and_return(x: typing.Any) -> typing.Any:
     print(type(x))
     return x
+
+
+def read_in_params(path: str) -> dict[str, typing.Any]:
+    with open(file=path) as file:
+        params: dict[str, typing.Any] = yaml.safe_load(stream=file)
+    return params
 
 
 def save_show_and_close(outputs_directory: pathlib.Path | None, filename: str | None, is_in_notebook: bool) -> None:

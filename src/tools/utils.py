@@ -91,11 +91,12 @@ def configure_logging(path: str | None, params: dict[str, typing.Any]) -> pathli
 
 
 def display_data(
-    data: pd.DataFrame | pd.Series, is_in_notebook: bool, name: str | None = None, info_args: dict | None = None
+    data: pd.DataFrame | pd.Series, is_in_notebook: bool, name: str | None = None, show_info: bool = True
 ) -> None:
     if name is not None:
         print("=" * int(8e1), name, "-" * int(8e1), sep="\n")
-    data.info(**(info_args or {}))
+    if show_info:
+        data.info()
     if is_in_notebook:
         print("-" * int(8e1))
         display(data)

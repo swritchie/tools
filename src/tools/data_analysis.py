@@ -135,6 +135,6 @@ def plot_value_counts(data: pd.Series, n: int = int(1e1), bbox: list | tuple | N
     filtered_kwargs: dict[str, typing.Any] = tz.keyfilter(predicate=lambda x: x not in ["kind"], d=kwargs)
     ax: plt.Axes = plot_data["cnt"].iloc[::-1].plot(kind="barh", **filtered_kwargs)
     if bbox is None:
-        bbox = (1.2, 0, 4e-1, 2e-1 * plot_data.shape[0])
+        bbox = (1.2, 0, 4e-1, 1e-1 * plot_data.shape[0])
     pd.plotting.table(ax=ax, data=plot_data.round(decimals=3), bbox=bbox)
     return ax

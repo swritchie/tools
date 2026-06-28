@@ -20,7 +20,7 @@ class DuplicatedDropper(snbe.BaseEstimator, snbe.TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        return X.drop(columns=self.duplicated_columns)
+        return X.drop(columns=self.duplicated_columns).loc[:, self.remaining_columns]
 
     def get_feature_names_out(self) -> list[str]:
         return self.remaining_columns.tolist()
@@ -51,7 +51,7 @@ class QuasiConstantDropper(snbe.BaseEstimator, snbe.TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        return X.drop(columns=self.constant_columns)
+        return X.drop(columns=self.constant_columns).loc[:, self.remaining_columns]
 
     def get_feature_names_out(self) -> list[str]:
         return self.remaining_columns.tolist()
